@@ -34,10 +34,7 @@ public class GameController {
         if (status == GameStatus.INVALID_TURN) {
             return ResponseEntity.ok(new BaseResponse(status.getValue(), status.getMessage(), userChoice.getPlayerTurn()));
         }
-        int turnPlayer = 1;
-        if (status == GameStatus.PLAYER_2_TURN) {
-            turnPlayer = 2;
-        }
+        int turnPlayer = status == GameStatus.PLAYER_2_TURN ? 2 : 1;
         return ResponseEntity.ok(new BaseResponse(status.getValue(), status.getMessage(), turnPlayer));
     }
 }
