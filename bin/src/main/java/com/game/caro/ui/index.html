@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Caro Game 5x5</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            font-weight: bold;
+        }
+        #board {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        #board td {
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            vertical-align: middle;
+            border: 2px solid #555;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #board td:hover {
+            background: #f0f8ff;
+        }
+        #board td.disabled {
+            pointer-events: none;
+            background: #eee;
+        }
+        #message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+        }
+        .x-cell {
+            color: #d9534f;
+        }
+        .o-cell {
+            color: #0275d8;
+        }
+        .winner {
+            background: #ffe082 !important;
+        }
+    </style>
+</head>
+<body class="container text-center">
+
+<h1 class="mt-4">🎮 Caro 5x5</h1>
+<h4 id="turnInfo" class="text-primary">Player 1 turn</h4>
+<div id="message" class="mb-3"></div>
+
+<table id="board"></table>
+
+<script>
+    const BOARD_SIZE = 5;
+    let currentPlayer = 1;
+
+    function createBoard() {
+        const table = document.getElementById("board");
+        table.innerHTML = "";
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            const tr = document.createElement("tr");
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const td = document.createElement("td");
+                td.dataset.row = row;
+                td.dataset.col = col;
+                td.addEventListener("click", () => playMove(row, col, td));
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+    }
+
+    async function playMove(row, col, cell) {
+        const userChoice = {
+            playerTurn: currentPlayer,
+            row: row,
+            column: col
+        };
+
+        try {
+            const res = await fetch("http://localhost:8080/api/play", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(userChoice)
+            });
+            const data = await res.json();
+
+            document.getElementById("message").innerText =
+                `Status: ${data.status} | Message: ${data.message}`;
+
+            if (data.status === 888) { // INVALID_TURN
+                return;
+            }
+
+            cell.innerText = (currentPlayer === 1) ? "X" : "O";
+            cell.classList.add("disabled");
+            cell.classList.add(currentPlayer === 1 ? "x-cell" : "o-cell");
+
+            if (data.status === 2 || data.status === 3) { // có người thắng
+                alert(data.message);
+                disableBoard();
+                setTimeout(() => {
+                    createBoard(); // reset bàn mới
+                    document.getElementById("message").innerText = "New game started!";
+                    currentPlayer = 1;
+                    document.getElementById("turnInfo").innerText = "Player 1 turn";
+                }, 1500);
+                return;
+            }
+
+            currentPlayer = data.playerTurn;
+            document.getElementById("turnInfo").innerText =
+                `Player ${currentPlayer} turn`;
+        } catch (e) {
+            console.error(e);
+            document.getElementById("message").innerText = "❌ Error connecting to server!";
+        }
+    }
+
+    function disableBoard() {
+        document.querySelectorAll("td").forEach(td => td.classList.add("disabled"));
+    }
+
+    createBoard();
+</script>
+</body>
+</html>
