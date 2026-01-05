@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GameService {
+
     private final int [][] board = new int[][]{
             {0,0,0,0,0},
             {0,0,0,0,0},
@@ -13,9 +14,6 @@ public class GameService {
             {0,0,0,0,0},
             {0,0,0,0,0},
     };
-    private final int PLAYER_1 = 1;
-    private final int PLAYER_2 = 2;
-    private final int TOTAL_TRAVERSAL = 5;
 
     private int checkByRows(int [][]board, int row, int column, int totalTraversal, boolean [] visited, int player) {
         if (totalTraversal == 0 || column == board.length || column < 0 || visited[column]) {
@@ -64,12 +62,18 @@ public class GameService {
     }
 
     public GameStatus playerChoice(UserChoice userChoice) {
+        // Define constant variable
+        final int PLAYER_1 = 1;
+        final int PLAYER_2 = 2;
+        final int TOTAL_TRAVERSAL = 5;
+
+        // Validate when user choose the wrong move
         if (board[userChoice.getRow()][userChoice.getColumn()] != 0) {
             return GameStatus.INVALID_TURN;
         }
         board[userChoice.getRow()][userChoice.getColumn()] = userChoice.getPlayerTurn() == 1 ? PLAYER_1 : PLAYER_2;
-        int currentPlayer = userChoice.getPlayerTurn() == 1 ? PLAYER_1 : PLAYER_2;
 
+        int currentPlayer = userChoice.getPlayerTurn() == 1 ? PLAYER_1 : PLAYER_2;
         int rowMarked = checkByRows(board, userChoice.getRow(), userChoice.getColumn(), TOTAL_TRAVERSAL, new boolean[board.length], currentPlayer);
         int columMark = checkByColumn(board, userChoice.getRow(), userChoice.getColumn(), TOTAL_TRAVERSAL, new boolean[board.length], currentPlayer);
         int crossMark = checkCross(board, userChoice.getRow(), userChoice.getColumn(), TOTAL_TRAVERSAL, new boolean[board.length], currentPlayer);
@@ -78,6 +82,7 @@ public class GameService {
             refillBoard();
             return userChoice.getPlayerTurn() == 1 ? GameStatus.PLAYER_1_WIN : GameStatus.PLAYER_2_WIN;
         }
+
         return userChoice.getPlayerTurn() == 1 ? GameStatus.PLAYER_2_TURN : GameStatus.PLAYER_1_TURN;
     }
 
