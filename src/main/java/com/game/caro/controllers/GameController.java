@@ -15,26 +15,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class GameController {
 
-    private String message = "Hello";
     private final GameService gameService;
 
     @GetMapping("/health-check")
-    public String healthCheck(@RequestParam(required = false, defaultValue = "") String message) {
-        if (!message.isEmpty()) {
-            this.message = message;
-        }
-        log.info("Health Check Message: {}", this.message);
-        return "I alive, your message: " + this.message;
+    public String healthCheck(@RequestParam(required = false, defaultValue = "") String userMessage) {
+        final String message = userMessage == null ? "Hello this is from server!" : userMessage;
+        log.info("Health Check Message: {}", message);
+        return "I alive, your message: " + message;
     }
 
 
     @PostMapping("/play")
     public ResponseEntity<BaseResponse> playCaro(@RequestBody UserChoice userChoice) {
         GameStatus status = gameService.playerChoice(userChoice);
+        log.info("Play Caro Message: {}", status);
         if (status == GameStatus.INVALID_TURN) {
             return ResponseEntity.ok(new BaseResponse(status.getValue(), status.getMessage(), userChoice.getPlayerTurn()));
         }
         int turnPlayer = status == GameStatus.PLAYER_2_TURN ? 2 : 1;
+        log.info("Play Caro Turn Message: {}", turnPlayer);
         return ResponseEntity.ok(new BaseResponse(status.getValue(), status.getMessage(), turnPlayer));
     }
 }

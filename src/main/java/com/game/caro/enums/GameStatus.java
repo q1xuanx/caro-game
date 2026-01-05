@@ -19,4 +19,11 @@ public enum GameStatus {
         this.message = message;
     }
 
+    @Override
+    public String toString() {
+        return "GameStatus{" +
+                "value=" + value +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }
